@@ -4,11 +4,11 @@
 #                                      #
 ########################################
 
-setwd("C:\\Users\\kaszt\\OneDrive\\Dokumenty\\advanced econometric\\projekt\\projekt2")
+# setwd("advanced econometric\\projekt\\projekt2\\final_econometrics")
 # setwd("/Users/sergiocarcamo/Dev/econometrics")
 
-library(readr)
-library(dplyr)
+library("readr")
+library("dplyr")
 library("sandwich")
 library("lmtest")
 library("MASS")
@@ -24,16 +24,115 @@ library("stargazer")
 #install.packages("aods3")
 library("aods3")
 library("DescTools")
-library(ggplot2)
-library(AER)
-library(car)
+library("ggplot2")
+library("AER")
+library("car")
+library("gridExtra")
 
-?read_csv
 data <- read.csv("data/ecomerce_data.csv", sep=";")
 
 glimpse(data)
 colnames(data)
 table(data$Churn)
+########################################
+#                                      #
+#         Data Visualization           #
+#                                      #
+########################################
+# QUANTITATIVE VARIABLES
+# tenure and WarehouseToHome
+tenure_plot <- ggplot(data, aes(y = factor(1), x = Tenure)) + 
+  geom_violin(fill = "#354f52", trim = F) + 
+  labs(title = "Tenure", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+WarehouseToHome_plot <- ggplot(data, aes(y = factor(1), x = WarehouseToHome)) + 
+  geom_violin(fill = "#2f3e46", trim = F) + 
+  labs(title = "Warehouse To Home", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+# Arrange the plots on the same canvas
+grid.arrange(tenure_plot, WarehouseToHome_plot, ncol = 2)
+
+# cashback and order amount
+CashbackAmount_plot <- ggplot(data, aes(y = factor(1), x = CashbackAmount)) + 
+  geom_violin(fill = "#354f52", trim = F) + 
+  labs(title = "Cashback Amount", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+OrderAmount_plot <- ggplot(data, aes(y = factor(1), x = OrderAmountHikeFromlastYear)) + 
+  geom_violin(fill = "#2f3e46", trim = F) + 
+  labs(title = "Order Amount Hike From last Year", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+# Arrange the plots on the same canvas
+grid.arrange(CashbackAmount_plot, OrderAmount_plot, ncol = 2)
+
+# Number of address and satisfaction score
+NumberOfAddress_plot <- ggplot(data, aes(y = factor(1), x = NumberOfAddress)) + 
+  geom_violin(fill = "#354f52", trim = F) + 
+  labs(title = "Number Of Address", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+SatisfactionScore_plot <- ggplot(data, aes(y = factor(1), x = SatisfactionScore)) + 
+  geom_violin(fill = "#2f3e46", trim = F) + 
+  labs(title = "Satisfaction Score", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+# Arrange the plots on the same canvas
+grid.arrange(NumberOfAddress_plot, SatisfactionScore_plot, ncol = 2)
+
+# OrderCount and DaySinceLastOrder
+OrderCount_plot <- ggplot(data, aes(y = factor(1), x = OrderCount)) + 
+  geom_violin(fill = "#354f52", trim = F) + 
+  labs(title = "Order Count", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+DaySinceLastOrder_plot <- ggplot(data, aes(y = factor(1), x = DaySinceLastOrder)) + 
+  geom_violin(fill = "#2f3e46", trim = F) + 
+  labs(title = "Day Since Last Order", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+# Arrange the plots on the same canvas
+grid.arrange(OrderCount_plot, DaySinceLastOrder_plot, ncol = 2)
+
+# HourSpendOnApp and DaySinceLastOrder
+HourSpendOnApp_plot <- ggplot(data, aes(y = factor(1), x = HourSpendOnApp)) + 
+  geom_violin(fill = "#354f52", trim = F) + 
+  labs(title = "Hour Spend On App", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+NumberOfDeviceRegistered_plot <- ggplot(data, aes(y = factor(1), x = NumberOfDeviceRegistered)) + 
+  geom_violin(fill = "#2f3e46", trim = F) + 
+  labs(title = "Number Of Device Registered", x = "", y = "") +
+  theme(panel.background = element_rect(fill = "white"))
+
+# Arrange the plots on the same canvas
+grid.arrange(HourSpendOnApp_plot, NumberOfDeviceRegistered_plot, ncol = 2)
+
+# QUALITATIVE VARIABLES
+# plot all categorical vairables on one canvas
+colors = c("#cad2c5", "#84a98c", "#52796f", "#354f52", "#2f3e46")
+variables <- c("PreferredLoginDevice", "CityTier", "MaritalStatus", "Complain", "Gender", "PreferredPaymentMode", "PreferedOrderCat", "Complain", "Churn")
+plots <- list()
+for (i in 1:length(variables)) {
+  plots[[i]] <- ggplot(data, aes_string(x = variables[i])) + 
+    geom_bar(fill = colors[i %% length(colors) + 1]) + 
+    labs(title = variables[i], x = "", y = "") +
+    theme(panel.background = element_rect(fill = "white"), legend.position = "none")
+}
+
+do.call("grid.arrange", c(plots, ncol = 2))
+
+# logit vs probit cumulative distribution functions
+x_values <- data.frame(x = seq(-8, 8, length.out = 100))
+ggplot(data = x_values, aes(x = x)) +
+  stat_function(fun = plogis, aes(color = "Logit"), size = 1.2, linetype = 1) +
+  stat_function(fun = pnorm, aes(color = "Probit"), size = 1.2, linetype = 2) +
+  scale_color_manual(name = "Function",
+                     values = c("Logit" = "#84a98c", "Probit" = "#354f52")) +
+  labs(x = "") +
+  theme_minimal()
 
 ########################################
 #                                      #
@@ -479,6 +578,7 @@ anova(general, reduced_model_7, test = "LRT")
 #               Final Model            #
 #                                      #
 ########################################
+# present final model in quality table
 final_model <- reduced_model_7
 stargazer(final_model, type = "text", title = "final model", align=T, out = "final.txt")
 
@@ -515,6 +615,33 @@ probitmfx(formula=Churn ~ Tenure +
           , data = final_data
           , atmean = T)
 
+# average marginal effects
+probitmfx(formula=Churn ~ Tenure + 
+            WarehouseToHome + 
+            NumberOfDeviceRegistered + 
+            SatisfactionScore + 
+            NumberOfAddress + 
+            Complain + 
+            DaySinceLastOrder + 
+            CashbackAmount + 
+            LoginDevice_MPhone + 
+            LoginDevice_Phone + 
+            PaymentMode_CCard + 
+            PaymentMode_DCard + 
+            PaymentMode_UPI + 
+            CityTier2 + 
+            CityTier3 + 
+            OrderCat_Laptop + 
+            OrderCat_Mobile + 
+            OrderCat_Other + 
+            Martial_Divorced + 
+            Martial_Married + 
+            Gender * Complain +
+            OrderCount * DaySinceLastOrder +
+            NumberOfDeviceRegistered * SatisfactionScore
+          , data = final_data
+          , atmean = F)
+
 # marginal effects for user defined characteristics
 source("functions/marginaleffects.R")
 user.def.obs <- c(
@@ -549,11 +676,7 @@ user.def.obs <- c(
 marginaleffects(final_model, user.def.obs)
 # linktest
 source("functions/linktest.R")
-# The linktest evaluates if the functional form specified
-# for the predictors in the model  adequatly captures the relationship with the response variable
 linktest_result <- linktest(final_model)
-# yhat is significant so there is no need to include or omit variable,
-# and the predicted yhat is very identical to the real y dependent variable values.
 
 # R-Squared 
 PseudoR2(final_model,c("Tjur","McKelveyZavoina"))
